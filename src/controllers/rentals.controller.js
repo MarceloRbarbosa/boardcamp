@@ -8,7 +8,7 @@ export async function getRentals(req, res){
 
 export async function createNewRental(req, res){
      try {
-        res.send("get clients")
+        res.send("new")
     } catch (err) {
         res.status(500).send(err.message)
     }
@@ -16,7 +16,7 @@ export async function createNewRental(req, res){
 
 export async function returnRental(req, res){
      try {
-        res.send("get clients")
+        res.send("return")
     } catch (err) {
         res.status(500).send(err.message)
     }
@@ -24,7 +24,7 @@ export async function returnRental(req, res){
 
 export async function deleteRental(req, res){
      try {
-        res.send("get clients")
+        res.send("delete")
     } catch (err) {
         res.status(500).send(err.message)
     }
