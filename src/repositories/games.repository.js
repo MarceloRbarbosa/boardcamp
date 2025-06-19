@@ -9,6 +9,12 @@ async function findGamesByName(name){
     const game = await connection.query(`SELECT * FROM games WHERE name = $1`, [name]);
     return game.rows[0];
 }
+
+async function findGamesByID(id){
+    const game = await connection.query(`SELECT * FROM games WHERE id = $1`, [id]);
+    return game.rows[0];
+}
+
 async function insertGame({ name, image, stockTotal, pricePerDay}) {
     const game = await connection.query(`
         INSERT INTO games (name, image, "stockTotal", "pricePerDay")
@@ -20,7 +26,8 @@ async function insertGame({ name, image, stockTotal, pricePerDay}) {
 const gamesRepository = {
     findAllGames,
     findGamesByName,
-    insertGame
+    insertGame,
+    findGamesByID
 }
 
 export default gamesRepository;
