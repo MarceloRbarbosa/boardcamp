@@ -6,30 +6,51 @@ import rentalsRepository from "../repositories/rentals.repository.js";
 
 async function getRentalServices(){
     const rentals = await rentalsRepository.findAllRentals();
-    return rentals;
+    return rentals.map(rental => {
+        return {
+        id: rental.id,
+        customerId: rental.customerId,
+        gameId: rental.gameId,
+        rentDate: rental.rentDate,
+        daysRented: rental.daysRented,
+        returnDate: rental.rentDate,
+        originalPrice:rental.originalPrice,
+        delayFee: rental.delayFee,
+
+        customer: {
+            id: rental.customerId,
+            name: rental.customerName
+        },
+
+        game: {
+            id: rental.gameId,
+            name: rental.gamesNme
+        }
+    }
+});
 }
 
-async function createRentalServices({game, customerId, gameId, daysRented}) {
-    const existingCustomer = clientsRepository.findClientById(customerId)
+async function createRentalServices({customerId, gameId, daysRented}) {
+    const existingCustomer = await clientsRepository.findClientById(customerId)
     if(!existingCustomer){
         throw { type: "not_found", message:"Cliente não encontrado"}
     }
 
-    const existingGame = gamesRepository.findGamesByID(gameId)
+    const existingGame = await gamesRepository.findGamesByID(gameId)
     if(!existingGame){
         throw { type: "not_found", message:"Jogo não encontrado"}
     }
 
     const openRentals = await rentalsRepository.countRentals(gameId);
-    if(openRentals >= game.stockTotal) {
+    if (openRentals >= existingGame.stockTotal) {
         throw {type: "conflict", message: "Jogo sem estoque disponivel"}
     }
 
     const rentDate = dayjs().format("YYYY-MM-DD");
-    const originalPrice = game.pricePerDay * daysRented;
+    const originalPrice = existingGame.pricePerDay * daysRented;
 
     await rentalsRepository.insertNewRent({
-        customerID,
+        customerId,
         gameId,
         rentDate,
         daysRented,
@@ -53,7 +74,7 @@ async function finishRentalService(id) {
     const delayDays = daysPassed - rental.daysRented;
 
     let delayFee = 0;
-    if ( delayFee > 0 ) {
+    if ( delayDays > 0 ) {
         const game = await gamesRepository.findGamesByID(rental.gameId);
         delayFee = delayDays * game.pricePerDay;
     }
@@ -66,7 +87,8 @@ async function finishRentalService(id) {
 }
 
 async function  deleteRentalService(id) {
-const rental = await rentalsRepository.deleteRental();
+const rental = await rentalsRepository.deleteRental(id);
+
  if (!rental) {
     throw { type: "not_found", message: "Aluguel não encontrado" };
   }
@@ -75,7 +97,7 @@ const rental = await rentalsRepository.deleteRental();
     throw { type: "unprocessable_entity", message: "Não é possível deletar um aluguel já finalizado" };
   }
 
-  await rentalRepository.deleteRental(id);
+  await rentalsRepository.deleteRental(id);
 }
 
 

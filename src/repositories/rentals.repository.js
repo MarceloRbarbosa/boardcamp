@@ -20,20 +20,22 @@ async function findRentalById(id) {
 }
 
 async function countRentals(gameId) {
-    const count = await connection.query(`
+    const result = await connection.query(`
         SELECT COUNT(*) FROM rentals
-        WHERE "gameID" =$1 AND "returnDate" IS NULL 
+        WHERE "gameId" =$1 AND "returnDate" IS NULL 
         `, [gameId])
+
+        return Number(result.rows[0].count)
 }
-async function insertNewRent({ customerID, gameID, rentDate, daysRented, originalPrice}) {
+async function insertNewRent({ customerId, gameId, rentDate, daysRented, originalPrice}) {
     await connection.query(`
-        INSERT INTO rentals ("customerID", "gameId", "rentDate", "daysRented", "originalPrice")
+        INSERT INTO rentals ("customerId", "gameId", "rentDate", "daysRented", "originalPrice")
         VALUES ($1, $2, $3, $4, $5)
-        `, [customerID, gameID, rentDate, daysRented, originalPrice])
+        `, [customerId, gameId, rentDate, daysRented, originalPrice])
 }
 
 async function returnRent(id, returnDate, delayFee) {
-    await connection.query(`UPDATE rentals SET "returnDate" = $1, "delayFee" =$2, WHERE id = $3
+    await connection.query(`UPDATE rentals SET "returnDate" = $1, "delayFee" =$2 WHERE id = $3
     `, [returnDate, delayFee, id]
 
     )   
