@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
-import clientsRepository from "../repositories/clients.repository";
-import gamesRepository from "../repositories/games.repository";
-import rentalsRepository from "../repositories/rentals.repository";
+import clientsRepository from "../repositories/clients.repository.js";
+import gamesRepository from "../repositories/games.repository.js";
+import rentalsRepository from "../repositories/rentals.repository.js";
 
 
 async function getRentalServices(){
@@ -37,11 +37,54 @@ async function createRentalServices({game, customerId, gameId, daysRented}) {
     });
 }
 
-async function returnRentalService(id) {
+async function finishRentalService(id) {
+    const rental = await rentalsRepository.findRentalById(id);
+    if(!rental){
+        throw { type: "not_found", message: "Aluguel não encontrado"}
+    }
+
+    if(rental.returnDate){
+        throw { type: "unprocessable_entity", message: "Aluguel já finalizado"}
+    }
     
-    
+    const returnDate = dayjs();
+    const rentDate = dayjs(rental.rentDate);
+    const daysPassed = returnDate.diff(rentDate, 'day');
+    const delayDays = daysPassed - rental.daysRented;
+
+    let delayFee = 0;
+    if ( delayFee > 0 ) {
+        const game = await gamesRepository.findGamesByID(rental.gameId);
+        delayFee = delayDays * game.pricePerDay;
+    }
+
+    await rentalsRepository.returnRent(
+        id,
+        returnDate.format("YYYY-MM-DD"),
+        delayFee
+         );
 }
+
+async function  deleteRentalService(id) {
+const rental = await rentalsRepository.deleteRental();
+ if (!rental) {
+    throw { type: "not_found", message: "Aluguel não encontrado" };
+  }
+
+  if (rental.returnDate !== null) {
+    throw { type: "unprocessable_entity", message: "Não é possível deletar um aluguel já finalizado" };
+  }
+
+  await rentalRepository.deleteRental(id);
+}
+
+
+
 const rentalsServices = {
     getRentalServices,
-    createRentalServices
+    createRentalServices,
+    finishRentalService,
+    deleteRentalService
 }
+
+export default rentalsServices;

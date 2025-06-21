@@ -1,13 +1,21 @@
 import connection from "../database/db.connections.js";
 
 
-async function findAllRentals(params) {
-    const rentals = await connection.query(`SELECT * FROM rentals ORDER BY id`)
+async function findAllRentals() {
+    const rentals = await connection.query(`
+    SELECT rentals.*, 
+        customers.id AS "customerId", 
+        customers.name AS "customerName", 
+        games.id AS "gamesId", 
+        games.name AS "gamesName"
+    FROM rentals
+    JOIN customers ON rentals."customerId" = customers.id
+	JOIN games ON rentals."gameId" = games.id`)
     return rentals.rows;
 }
 
 async function findRentalById(id) {
-    const rental = await connection.query(`SELECT * FROM rentals WHERE id =$1`, [id]);
+    const rentals = await connection.query(`SELECT * FROM rentals WHERE id =$1`, [id]);
     return rentals.rows[0]
 }
 
