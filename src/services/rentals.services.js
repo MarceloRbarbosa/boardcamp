@@ -24,7 +24,7 @@ async function getRentalServices(){
 
         game: {
             id: rental.gameId,
-            name: rental.gamesNme
+            name: rental.gamesName
         }
     }
 });
@@ -87,14 +87,15 @@ async function finishRentalService(id) {
 }
 
 async function  deleteRentalService(id) {
-const rental = await rentalsRepository.deleteRental(id);
+   
+const rental = await rentalsRepository.findRentalById(id);
 
  if (!rental) {
     throw { type: "not_found", message: "Aluguel não encontrado" };
   }
 
-  if (rental.returnDate !== null) {
-    throw { type: "unprocessable_entity", message: "Não é possível deletar um aluguel já finalizado" };
+  if (rental.returnDate === null) {
+    throw { type: "unprocessable_entity", message: "Não é possível deletar um aluguel não finalizado" };
   }
 
   await rentalsRepository.deleteRental(id);
